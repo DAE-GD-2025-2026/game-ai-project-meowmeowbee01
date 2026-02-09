@@ -25,6 +25,7 @@ public:
 
 protected:
 	FTargetData Target;
+	const float MaxSpeed {500.f};
 };
 
 // Your own SteeringBehaviors should follow here...
@@ -42,6 +43,18 @@ class Flee : public ISteeringBehavior
 public:
 	Flee() = default;
 	virtual ~Flee() override = default;
+
+	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+};
+
+class Arrive : public ISteeringBehavior
+{
+public:
+	Arrive() = default;
+	virtual ~Arrive() override = default;
+
+	const float SlowRadius {300.f};
+	const float TargetRadius {100.f};
 
 	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
 };
