@@ -151,10 +151,9 @@ SteeringOutput Wander::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 	Agent.SetMaxLinearSpeed(MaxSpeed);
 	
 	SteeringOutput Steering {};
-	AngleDegrees += rand() % (WanderDirectionChangeDegrees + 1) - WanderDirectionChangeDegrees / 2;
-	const float Angle {AngleDegrees * PI / 180.f};
-	const FVector2D CircleCenter {Agent.GetPosition() + Agent.GetLinearVelocity()};
-	const FVector2D WanderTarget {CircleCenter.X + cosf(Angle) * Radius, CircleCenter.Y - sinf(Angle) * Radius};
+	m_WanderAngle += FMath::RandRange(-m_MaxAngleChange, m_MaxAngleChange);
+	const FVector2D CircleCenter {Agent.GetPosition() + Agent.GetLinearVelocity() / Agent.GetMaxLinearSpeed() * m_OffsetDistance};
+	const FVector2D WanderTarget {CircleCenter.X + cosf(m_WanderAngle) * m_Radius, CircleCenter.Y - sinf(m_WanderAngle) * m_Radius};
 	Steering.LinearVelocity = WanderTarget - Agent.GetPosition();
 	
 	DrawDebugLine(
@@ -166,7 +165,7 @@ SteeringOutput Wander::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 	DrawDebugCircle(
 		Agent.GetWorld(),
 		FVector {CircleCenter.X, CircleCenter.Y,0},
-		Radius,
+		m_Radius,
 		20,
 		FColor::Blue,
 		false,
