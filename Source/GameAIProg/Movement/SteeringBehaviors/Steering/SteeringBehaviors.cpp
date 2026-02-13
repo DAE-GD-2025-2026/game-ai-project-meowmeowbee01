@@ -1,4 +1,6 @@
 #include "SteeringBehaviors.h"
+
+#include "VectorTypes.h"
 #include "GameAIProg/Movement/SteeringBehaviors/SteeringAgent.h"
 
 //Seek
@@ -97,6 +99,26 @@ SteeringOutput Face::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 		Agent.GetWorld(),
 		FVector {Agent.GetPosition().X, Agent.GetPosition().Y,0},
 		FVector {Target.Position.X, Target.Position.Y,0},
+		FColor::Green
+		);
+	
+	return Steering;
+}
+
+//Pursuit
+SteeringOutput Pursuit::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
+{
+	SteeringOutput Steering {};
+	const FVector2D Intercept {Target.Position + Target.LinearVelocity * TimeToIntercept};
+	TimeToIntercept = UE::Geometry::Distance(Intercept, Agent.GetPosition()) / Agent.GetMaxLinearSpeed();
+	Steering.LinearVelocity = Intercept - Agent.GetPosition();
+	
+	Agent.SetMaxLinearSpeed(MaxSpeed);
+	
+	DrawDebugLine(
+		Agent.GetWorld(),
+		FVector {Agent.GetPosition().X, Agent.GetPosition().Y,0},
+		FVector {Intercept.X, Intercept.Y,0},
 		FColor::Green
 		);
 	
