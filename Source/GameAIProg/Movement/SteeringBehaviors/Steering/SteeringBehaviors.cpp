@@ -124,3 +124,23 @@ SteeringOutput Pursuit::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 	
 	return Steering;
 }
+
+//Evade
+SteeringOutput Evade::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
+{
+	SteeringOutput Steering {};
+	const FVector2D Intercept {Target.Position + Target.LinearVelocity * TimeToIntercept};
+	TimeToIntercept = UE::Geometry::Distance(Intercept, Agent.GetPosition()) / Agent.GetMaxLinearSpeed();
+	Steering.LinearVelocity = Agent.GetPosition() - Intercept;
+	
+	Agent.SetMaxLinearSpeed(MaxSpeed);
+	
+	DrawDebugLine(
+		Agent.GetWorld(),
+		FVector {Agent.GetPosition().X, Agent.GetPosition().Y,0},
+		FVector {Intercept.X, Intercept.Y,0},
+		FColor::Red
+		);
+	
+	return Steering;
+}
