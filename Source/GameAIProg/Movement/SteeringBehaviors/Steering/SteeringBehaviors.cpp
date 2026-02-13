@@ -82,7 +82,23 @@ SteeringOutput Arrive::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 		FVector {1,0,0},
 		false);
 	
+	return Steering;
+}
+
+//Face
+SteeringOutput Face::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
+{
+	SteeringOutput Steering {};
+	Steering.LinearVelocity = Target.Position - Agent.GetPosition();
 	
+	Agent.SetMaxLinearSpeed(0);
+	
+	DrawDebugLine(
+		Agent.GetWorld(),
+		FVector {Agent.GetPosition().X, Agent.GetPosition().Y,0},
+		FVector {Target.Position.X, Target.Position.Y,0},
+		FColor::Green
+		);
 	
 	return Steering;
 }

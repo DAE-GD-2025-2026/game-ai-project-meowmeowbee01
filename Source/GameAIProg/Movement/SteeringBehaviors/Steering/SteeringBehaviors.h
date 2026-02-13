@@ -57,3 +57,15 @@ public:
 
 	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
 };
+
+class Face : public ISteeringBehavior
+{
+public:
+	Face() = default;
+	virtual ~Face() override = default;
+
+	const float SlowRadius {600.f};
+	const float TargetRadius {300.f};
+
+	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
+};
