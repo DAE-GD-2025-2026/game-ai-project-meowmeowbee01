@@ -6,10 +6,10 @@
 //Seek
 SteeringOutput Seek::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
+	Agent.SetMaxLinearSpeed(MaxSpeed);
+	
 	SteeringOutput Steering {};
 	Steering.LinearVelocity = Target.Position - Agent.GetPosition();
-	
-	Agent.SetMaxLinearSpeed(MaxSpeed);
 	
 	DrawDebugLine(
 		Agent.GetWorld(),
@@ -24,10 +24,10 @@ SteeringOutput Seek::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 //Flee
 SteeringOutput Flee::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
+	Agent.SetMaxLinearSpeed(MaxSpeed);
+	
 	SteeringOutput Steering {};
 	Steering.LinearVelocity = Agent.GetPosition() - Target.Position;
-	
-	Agent.SetMaxLinearSpeed(MaxSpeed);
 	
 	DrawDebugLine(
 		Agent.GetWorld(),
@@ -90,10 +90,10 @@ SteeringOutput Arrive::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 //Face
 SteeringOutput Face::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
+	Agent.SetMaxLinearSpeed(0);
+	
 	SteeringOutput Steering {};
 	Steering.LinearVelocity = Target.Position - Agent.GetPosition();
-	
-	Agent.SetMaxLinearSpeed(0);
 	
 	DrawDebugLine(
 		Agent.GetWorld(),
@@ -108,12 +108,12 @@ SteeringOutput Face::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 //Pursuit
 SteeringOutput Pursuit::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 {
+	Agent.SetMaxLinearSpeed(MaxSpeed);
+	
 	SteeringOutput Steering {};
 	const FVector2D Intercept {Target.Position + Target.LinearVelocity * TimeToIntercept};
 	TimeToIntercept = UE::Geometry::Distance(Intercept, Agent.GetPosition()) / Agent.GetMaxLinearSpeed();
 	Steering.LinearVelocity = Intercept - Agent.GetPosition();
-	
-	Agent.SetMaxLinearSpeed(MaxSpeed);
 	
 	DrawDebugLine(
 		Agent.GetWorld(),
@@ -141,6 +141,41 @@ SteeringOutput Evade::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 		FVector {Intercept.X, Intercept.Y,0},
 		FColor::Red
 		);
+	
+	return Steering;
+}
+
+//Wander
+SteeringOutput Wander::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
+{
+	Agent.SetMaxLinearSpeed(MaxSpeed);
+	
+	SteeringOutput Steering {};
+	AngleDegrees += rand() % (WanderDirectionChangeDegrees + 1) - WanderDirectionChangeDegrees / 2;
+	const float Angle {AngleDegrees * PI / 180.f};
+	const FVector2D CircleCenter {Agent.GetPosition() + Agent.GetLinearVelocity()};
+	const FVector2D WanderTarget {CircleCenter.X + cosf(Angle) * Radius, CircleCenter.Y - sinf(Angle) * Radius};
+	Steering.LinearVelocity = WanderTarget - Agent.GetPosition();
+	
+	DrawDebugLine(
+		Agent.GetWorld(),
+		FVector {Agent.GetPosition().X, Agent.GetPosition().Y,0},
+		FVector {WanderTarget.X, WanderTarget.Y,0},
+		FColor::Green
+		);
+	DrawDebugCircle(
+		Agent.GetWorld(),
+		FVector {CircleCenter.X, CircleCenter.Y,0},
+		Radius,
+		20,
+		FColor::Blue,
+		false,
+		-1.f,
+		0,
+		0,
+		FVector {0,1,0},
+		FVector {1,0,0},
+		false);
 	
 	return Steering;
 }
