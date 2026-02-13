@@ -28,7 +28,6 @@ protected:
 	const float MaxSpeed {500.f};
 };
 
-// Your own SteeringBehaviors should follow here...
 class Seek : public ISteeringBehavior
 {
 public:
@@ -53,8 +52,8 @@ public:
 	Arrive() = default;
 	virtual ~Arrive() override = default;
 
-	const float SlowRadius {300.f};
-	const float TargetRadius {100.f};
+	const float SlowRadius {600.f};
+	const float TargetRadius {300.f};
 
 	virtual SteeringOutput CalculateSteering(float DeltaT, ASteeringAgent& Agent) override;
 };
