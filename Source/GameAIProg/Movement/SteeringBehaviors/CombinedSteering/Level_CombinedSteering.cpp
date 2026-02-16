@@ -1,5 +1,7 @@
 #include "Level_CombinedSteering.h"
 
+#include <format>
+
 #include "imgui.h"
 
 
@@ -14,13 +16,11 @@ ALevel_CombinedSteering::ALevel_CombinedSteering()
 void ALevel_CombinedSteering::BeginPlay()
 {
 	Super::BeginPlay();
-
 }
 
 void ALevel_CombinedSteering::BeginDestroy()
 {
 	Super::BeginDestroy();
-
 }
 
 // Called every frame
@@ -49,7 +49,7 @@ void ALevel_CombinedSteering::Tick(float DeltaTime)
 		ImGui::Separator();
 		ImGui::Spacing();
 		ImGui::Spacing();
-	
+		
 		ImGui::Text("STATS");
 		ImGui::Indent();
 		ImGui::Text("%.3f ms/frame", 1000.0f / ImGui::GetIO().Framerate);
@@ -67,7 +67,7 @@ void ALevel_CombinedSteering::Tick(float DeltaTime)
 	
 		if (ImGui::Checkbox("Debug Rendering", &CanDebugRender))
 		{
-   // TODO: Handle the debug rendering of your agents here :)
+			// TODO: Handle the debug rendering of your agents here :)
 		}
 		ImGui::Checkbox("Trim World", &TrimWorld->bShouldTrimWorld);
 		if (TrimWorld->bShouldTrimWorld)
@@ -78,6 +78,12 @@ void ALevel_CombinedSteering::Tick(float DeltaTime)
 		}
 		
 		ImGui::Spacing();
+		if (ImGui::Button("Add Agent"))
+			AddAgent(BehaviorTypes::Drunk);
+		ImGui::Separator();
+		
+#pragma region PerAgentUI
+		
 		ImGui::Spacing();
 		ImGui::Spacing();
 	
@@ -92,13 +98,121 @@ void ALevel_CombinedSteering::Tick(float DeltaTime)
 		// ImGuiHelpers::ImGuiSliderFloatWithSetter("Wander",
 		// pBlendedSteering->GetWeightedBehaviorsRef()[1].Weight, 0.f, 1.f,
 		// [this](float InVal) { pBlendedSteering->GetWeightedBehaviorsRef()[1].Weight = InVal; }, "%.2f");
-	
+#pragma endregion
 		//End
 		ImGui::End();
 	}
 #pragma endregion
 	
 	// Combined Steering Update
- // TODO: implement handling mouse click input for seek
- // TODO: implement Make sure to also evade the wanderer
+	// TODO: implement handling mouse click input for seek
+	// TODO: implement Make sure to also evade the wanderer
+	
+}
+
+bool ALevel_CombinedSteering::AddAgent(BehaviorTypes BehaviorType, bool AutoOrient)
+{
+	ImGui_Agent ImGuiAgent = {};
+	ImGuiAgent.Agent = GetWorld()->SpawnActor<ASteeringAgent>(SteeringAgentClass, FVector {0,0,90}, FRotator::ZeroRotator);
+	if (IsValid(ImGuiAgent.Agent))
+	{
+		ImGuiAgent.SelectedBehavior = static_cast<int>(BehaviorType);
+		ImGuiAgent.SelectedTarget = -1; // Mouse
+	
+		SetAgentBehavior(ImGuiAgent);
+	
+		SteeringAgents.push_back(std::move(ImGuiAgent));
+	
+		RefreshTargetLabels();
+	
+		return true;
+	}
+	
+	return false;
+}
+
+void ALevel_CombinedSteering::RemoveAgent(unsigned int Index)
+{
+	SteeringAgents[Index].Agent->Destroy();
+	SteeringAgents.erase(SteeringAgents.begin() + Index);
+
+	RefreshTargetLabels();
+	RefreshAgentTargets(Index);
+}
+
+void ALevel_CombinedSteering::SetAgentBehavior(ImGui_Agent& Agent)
+{
+	Agent.Behavior.reset();
+
+	switch (static_cast<BehaviorTypes>(Agent.SelectedBehavior))
+	{
+	case BehaviorTypes::Drunk:
+		{
+			ISteeringBehavior* SeekBehavior {new Seek};
+			ISteeringBehavior* WanderBehavior {new Wander};
+			std::vector<BlendedSteering::WeightedBehavior> Behaviors
+			{
+				BlendedSteering::WeightedBehavior {SeekBehavior, 0.3f},
+				BlendedSteering::WeightedBehavior {WanderBehavior, 0.7f}
+			};
+			Agent.Behavior = std::make_unique<BlendedSteering>(Behaviors);
+		}
+		break;
+	default:
+		assert(false); // Incorrect Agent Behavior gotten during SetAgentBehavior()	
+		break;
+	}
+
+	UpdateTarget(Agent);
+
+	Agent.Agent->SetSteeringBehavior(Agent.Behavior.get());
+}
+
+void ALevel_CombinedSteering::RefreshTargetLabels()
+{
+	TargetLabels.clear();
+
+	TargetLabels.push_back("Mouse");
+	for (int i {0}; i < SteeringAgents.size(); ++i)
+	{
+		TargetLabels.push_back(std::format("Agent {}", i));
+	}
+}
+
+void ALevel_CombinedSteering::UpdateTarget(ImGui_Agent& Agent)
+{
+	// Note: MouseTarget position is updated via Level BP every click
+
+	bool const bUseMouseAsTarget = Agent.SelectedTarget < 0;
+	if (!bUseMouseAsTarget)
+	{
+		ASteeringAgent* const TargetAgent = SteeringAgents[Agent.SelectedTarget].Agent;
+
+		FTargetData Target;
+		Target.Position = TargetAgent->GetPosition();
+		Target.Orientation = TargetAgent->GetRotation();
+		Target.LinearVelocity = TargetAgent->GetLinearVelocity();
+		Target.AngularVelocity = TargetAgent->GetAngularVelocity();
+
+		Agent.Behavior->SetTarget(Target);
+	}
+	else
+	{
+		Agent.Behavior->SetTarget(MouseTarget);
+	}
+}
+
+void ALevel_CombinedSteering::RefreshAgentTargets(unsigned int IndexRemoved)
+{
+	for (UINT i = 0; i < SteeringAgents.size(); ++i)
+	{
+		if (i >= IndexRemoved)
+		{
+			auto& Agent = SteeringAgents[i];
+			if (Agent.SelectedTarget == IndexRemoved || i == Agent.SelectedTarget)
+			{
+				--Agent.SelectedTarget;
+			}
+		}
+	}
 }
