@@ -99,8 +99,7 @@ SteeringOutput Face::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 		Agent.GetWorld(),
 		FVector {Agent.GetPosition().X, Agent.GetPosition().Y,0},
 		FVector {Target.Position.X, Target.Position.Y,0},
-		FColor::Green
-		);
+		FColor::Green);
 	
 	return Steering;
 }
@@ -119,8 +118,7 @@ SteeringOutput Pursuit::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 		Agent.GetWorld(),
 		FVector {Agent.GetPosition().X, Agent.GetPosition().Y,0},
 		FVector {Intercept.X, Intercept.Y,0},
-		FColor::Green
-		);
+		FColor::Green);
 	
 	return Steering;
 }
@@ -139,8 +137,7 @@ SteeringOutput Evade::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 		Agent.GetWorld(),
 		FVector {Agent.GetPosition().X, Agent.GetPosition().Y,0},
 		FVector {Intercept.X, Intercept.Y,0},
-		FColor::Red
-		);
+		FColor::Red);
 	
 	return Steering;
 }
@@ -160,8 +157,7 @@ SteeringOutput Wander::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 		Agent.GetWorld(),
 		FVector {Agent.GetPosition().X, Agent.GetPosition().Y,0},
 		FVector {WanderTarget.X, WanderTarget.Y,0},
-		FColor::Green
-		);
+		FColor::Green);
 	DrawDebugCircle(
 		Agent.GetWorld(),
 		FVector {CircleCenter.X, CircleCenter.Y,0},
