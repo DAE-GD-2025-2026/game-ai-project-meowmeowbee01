@@ -149,7 +149,9 @@ SteeringOutput Wander::CalculateSteering(float DeltaT, ASteeringAgent& Agent)
 	
 	SteeringOutput Steering {};
 	m_WanderAngle += FMath::RandRange(-m_MaxAngleChange, m_MaxAngleChange);
-	const FVector2D CircleCenter {Agent.GetPosition() + Agent.GetLinearVelocity() / Agent.GetMaxLinearSpeed() * m_OffsetDistance};
+	FVector2D AgentVelocity {Agent.GetLinearVelocity()};
+	AgentVelocity.Normalize();
+	const FVector2D CircleCenter {Agent.GetPosition() + AgentVelocity * m_OffsetDistance};
 	const FVector2D WanderTarget {CircleCenter.X + cosf(m_WanderAngle) * m_Radius, CircleCenter.Y - sinf(m_WanderAngle) * m_Radius};
 	Steering.LinearVelocity = WanderTarget - Agent.GetPosition();
 	
